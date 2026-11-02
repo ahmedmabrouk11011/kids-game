@@ -1,18 +1,11 @@
 // Youssef 3. Balance: an equation on a see-saw scale. While he types, the scale tilts;
 // the right number makes it level. Rounds: a+?=c, ?+b=c, 10=a+?, a−b=?, a+b=c+?
-import { h, randInt, clamp, pick } from '../util.js';
+import { h, clamp, pick } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
 import { keypad, qaLayout } from '../keypad.js';
-
-function problem(i) {
-  if (i === 0) { const c = randInt(5, 9); const a = randInt(1, c - 1); return { L: [a, '+', '?'], R: [c], ans: c - a }; }
-  if (i === 1) { const c = randInt(6, 10); const b = randInt(1, c - 1); return { L: ['?', '+', b], R: [c], ans: c - b }; }
-  if (i === 2) { const a = randInt(1, 9); return { L: [10], R: [a, '+', '?'], ans: 10 - a }; }
-  if (i === 3) { const a = randInt(6, 10); const b = randInt(1, a - 1); return { L: [a, '−', b], R: ['?'], ans: a - b }; }
-  const a = randInt(1, 5); const b = randInt(1, 5); const c = randInt(1, a + b - 1);
-  return { L: [a, '+', b], R: [c, '+', '?'], ans: a + b - c };
-}
+import { balanceProblem } from '../mathgen.js';
+import { L } from '../lines.js';
 
 const value = (side, x) => side.reduce((acc, t, k) => {
   if (t === '+' || t === '−') return acc;
@@ -20,16 +13,14 @@ const value = (side, x) => side.reduce((acc, t, k) => {
   return k > 0 && side[k - 1] === '−' ? acc - v : acc + v;
 }, 0);
 
-const spoken = (side) => side.map((t) => (t === '+' ? 'plus' : t === '−' ? 'minus' : t === '?' ? 'what' : t)).join(' ');
-
 export default {
   id: 'balance',
   title: 'Balance',
-  emoji: '⚖️',
+  icon: 'scale',
   color: '#9b5de5',
   create(api) {
     function round(i) {
-      const p = problem(i);
+      const p = balanceProblem(i);
       let slot;
       const side = (tokens) => h('div', { class: 'tray' }, tokens.map((t) => {
         if (t === '?') return (slot = h('span', { class: 'tok slot' }, '?'));
@@ -59,18 +50,18 @@ export default {
           const r = scale.getBoundingClientRect();
           burst(r.left + r.width / 2, r.top + r.height / 3, 60);
           const eq = `${p.L.join(' ')} = ${p.R.join(' ')}`.replace('?', String(v));
-          setTimeout(() => api.win({ text: eq, praise: `Level! ${spoken(p.L).replace('what', v)} equals ${spoken(p.R).replace('what', v)}. ${api.great()}` }), 800);
+          setTimeout(() => api.win({ text: eq, praise: [L.balance.level, api.great()] }), 800);
           return;
         }
         api.mistake();
         sfx.boing();
         pad.wrong();
-        api.say(pick(['The scale is not level. Try again!', 'Not quite. Look at the scale!']));
+        api.say(pick([L.balance.notLevel, L.balance.look]));
       }
 
-      const prompt = `${spoken(p.L)} equals ${spoken(p.R)}?`;
+      const prompt = L.balance.question(p);
       api.setPrompt(prompt);
-      api.say(i === 0 ? `Make the scale level! ${prompt}` : prompt);
+      api.say(i === 0 ? [L.balance.intro, prompt] : prompt);
     }
 
     return { round };

@@ -1,7 +1,8 @@
 // 2. How Many?: look at the objects and tap the right number. A wrong answer counts together with you.
-import { h, scatter, shuffle, sleep, Word, replay } from '../util.js';
+import { h, scatter, shuffle, sleep, replay } from '../util.js';
 import { sfx } from '../sound.js';
-import { itemDeck, itemEl, itemName } from '../items.js';
+import { itemDeck, itemEl } from '../items.js';
+import { L } from '../lines.js';
 
 const COLORS = ['#ff5fa2', '#3fa9f5', '#ff8c42'];
 
@@ -13,10 +14,10 @@ function options(n) {
 export default {
   id: 'howmany',
   title: 'How Many?',
-  emoji: '🤔',
+  icon: 'thinking',
   color: '#ff5fa2',
   create(api) {
-    const kinds = itemDeck();
+    const kinds = itemDeck(api.kid.hero);
 
     function round(i) {
       const n = api.deck[i];
@@ -30,17 +31,17 @@ export default {
       async function countTogether() {
         counting = true;
         els.forEach((el) => { el.classList.remove('counted'); el.querySelector('.badge')?.remove(); });
-        await api.say("Let's count together!");
+        await api.say(L.howmany.together);
         for (let k = 0; k < els.length && api.alive(); k++) {
           els[k].classList.add('counted');
           replay(els[k], 'glow');
           els[k].append(h('span', { class: 'badge' }, String(k + 1)));
           sfx.note(k);
-          api.say(Word(k + 1));
+          api.say(L.num(k + 1));
           await sleep(750);
         }
         if (!api.alive()) return;
-        await api.say(`How many ${kind.many}?`);
+        await api.say(L.howmany.prompt(kind));
         counting = false;
       }
 
@@ -52,7 +53,7 @@ export default {
             b.classList.add('right');
             sfx.ding();
             choices.style.pointerEvents = 'none';
-            setTimeout(() => api.win({ num: n, praise: `Yes! ${Word(n)} ${itemName(kind, n)}! ${api.great()}` }), 450);
+            setTimeout(() => api.win({ num: n, praise: [L.yes, L.count.got(n, kind), api.great()] }), 450);
           } else {
             b.classList.add('wrong');
             sfx.boing();
@@ -73,9 +74,8 @@ export default {
         return el;
       });
 
-      const prompt = `How many ${kind.many}?`;
-      api.setPrompt(prompt);
-      api.say(i === 0 ? `How many ${kind.many} can you see? Tap the number!` : prompt);
+      api.setPrompt(L.howmany.prompt(kind));
+      api.say(i === 0 ? L.howmany.intro(kind) : L.howmany.prompt(kind));
     }
 
     return { round };

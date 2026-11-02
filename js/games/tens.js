@@ -1,32 +1,26 @@
 // Youssef 6. Tens & Ones: read a number made of ten-rods and one-cubes (type it),
 // then build numbers yourself with +10 and +1 (ten loose cubes snap into a rod).
-import { h, randInt, replay } from '../util.js';
+import { h, icon, glyph, replay } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
 import { keypad, qaLayout } from '../keypad.js';
+import { tensTarget } from '../mathgen.js';
+import { L } from '../lines.js';
 
 const rod = () => h('div', { class: 'rod' }, [...Array(10)].map(() => h('i')));
 const cube = () => h('div', { class: 'cube' }, h('i'));
 
-function target(i) {
-  if (i === 0) return 10 + randInt(1, 9);
-  if (i === 1) return randInt(2, 4) * 10 + randInt(1, 9);
-  if (i === 2) return randInt(5, 9) * 10;
-  if (i === 3) return randInt(2, 5) * 10 + randInt(1, 9);
-  return randInt(6, 9) * 10 + randInt(1, 9);
-}
-
 export default {
   id: 'tens',
   title: 'Tens & Ones',
-  emoji: '🧱',
+  icon: 'brick',
   color: '#00c2a8',
   create(api) {
     function round(i) {
-      const n = target(i);
+      const n = tensTarget(i);
       const T = Math.floor(n / 10);
       const O = n % 10;
-      const praise = `${T} ${T === 1 ? 'ten' : 'tens'} and ${O} ${O === 1 ? 'one' : 'ones'} make ${n}! ${api.great()}`;
+      const praise = [L.tens.praise(T, O, n), api.great()];
       if (i < 3) readRound(i, n, T, O, praise);
       else buildRound(i, n, praise);
     }
@@ -53,12 +47,11 @@ export default {
         api.mistake();
         sfx.boing();
         pad.wrong();
-        api.say(`Not quite. Count the tens first: 10, 20, 30... then the ones.`);
+        api.say(L.tens.wrong);
       }
 
-      const prompt = 'What number is this? Count the tens and the ones.';
-      api.setPrompt(prompt);
-      api.say(i === 0 ? 'A long rod is ten. A small cube is one. What number is this?' : prompt);
+      api.setPrompt(L.tens.prompt);
+      api.say(i === 0 ? L.tens.intro : L.tens.prompt);
     }
 
     // Build: make the number with +10 and +1. Tap a block to take it away.
@@ -70,7 +63,7 @@ export default {
       const cubes = h('div', { class: 'cubes' });
       const addTen = h('button', { class: 'add-btn ten' }, '+10');
       const addOne = h('button', { class: 'add-btn one' }, '+1');
-      const go = h('button', { class: 'big-btn go', 'aria-label': 'Check' }, '✔');
+      const go = h('button', { class: 'big-btn go', 'aria-label': 'Check' }, glyph('check'));
       api.stage.replaceChildren(h('div', { class: 'qa build' },
         h('div', { class: 'problem' }, h('div', { class: 'tens-wrap' },
           h('div', { class: 'target-card' }, h('span', { class: 'small' }, 'Make'), String(n)),
@@ -79,13 +72,13 @@ export default {
 
       function addRod() {
         const r = rod();
-        r.addEventListener('click', () => { if (locked) return; r.remove(); t--; sfx.whoosh(); api.say(String(t * 10 + o)); });
+        r.addEventListener('click', () => { if (locked) return; r.remove(); t--; sfx.whoosh(); api.say(L.num(t * 10 + o)); });
         rods.append(r);
       }
       addTen.addEventListener('click', () => {
         if (locked) return;
         if (t >= 9) { sfx.boing(); return; }
-        t++; addRod(); sfx.note(t); api.say(String(t * 10 + o));
+        t++; addRod(); sfx.note(t); api.say(L.num(t * 10 + o));
       });
       addOne.addEventListener('click', () => {
         if (locked) return;
@@ -96,14 +89,14 @@ export default {
           o = 0;
           if (t < 9) { t++; addRod(); replay(rods.lastChild, 'pop-big'); }
           sfx.sparkle();
-          api.say('Ten ones make one ten!');
+          api.say(L.tens.tenOnes);
           return;
         }
         const c = cube();
-        c.addEventListener('click', () => { if (locked) return; c.remove(); o--; sfx.whoosh(); api.say(String(t * 10 + o)); });
+        c.addEventListener('click', () => { if (locked) return; c.remove(); o--; sfx.whoosh(); api.say(L.num(t * 10 + o)); });
         cubes.append(c);
         sfx.note(o);
-        api.say(String(t * 10 + o));
+        api.say(L.num(t * 10 + o));
       });
       go.addEventListener('click', () => {
         if (locked) return;
@@ -116,12 +109,11 @@ export default {
         }
         api.mistake();
         sfx.boing();
-        api.say(v === 0 ? `Tap plus 10 and plus 1 to make ${n}!` : `You made ${v}. We need ${n}. ${v < n ? 'Add more!' : 'Take some away!'}`);
+        api.say(v === 0 ? L.tens.tapPlus : v < n ? L.tens.more : L.tens.less);
       });
 
-      const prompt = `Make ${n} with tens and ones!`;
-      api.setPrompt(prompt);
-      api.say(i === 3 ? `Now you build it! ${prompt} Then press the green button.` : prompt);
+      api.setPrompt(L.tens.make(n));
+      api.say(i === 3 ? [L.tens.build, L.tens.make(n), L.thenGreen] : L.tens.make(n));
     }
 
     return { round };

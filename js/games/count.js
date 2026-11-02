@@ -1,15 +1,16 @@
 // 1. Count & Tap: tap every object once; each tap says the next number out loud.
-import { h, scatter, Word, replay } from '../util.js';
+import { h, scatter, replay } from '../util.js';
 import { sfx } from '../sound.js';
-import { itemDeck, itemEl, itemName } from '../items.js';
+import { itemDeck, itemEl } from '../items.js';
+import { L } from '../lines.js';
 
 export default {
   id: 'count',
   title: 'Count',
-  emoji: '👆',
+  icon: 'point',
   color: '#3fa9f5',
   create(api) {
-    const kinds = itemDeck();
+    const kinds = itemDeck(api.kid.hero);
 
     function round(i) {
       const n = api.deck[i];
@@ -38,16 +39,15 @@ export default {
           counter.textContent = count;
           replay(counter, 'bump');
           sfx.note(count - 1);
-          if (count < n) { api.say(Word(count)); return; }
+          if (count < n) { api.say(L.num(count)); return; }
           field.style.pointerEvents = 'none';
-          setTimeout(() => api.win({ num: n, praise: `${Word(n)} ${itemName(kind, n)}! ${api.great()}` }), 500);
+          setTimeout(() => api.win({ num: n, praise: [L.count.got(n, kind), api.great()] }), 500);
         });
         field.append(el);
       });
 
-      const prompt = `Tap each ${kind.one} and count!`;
-      api.setPrompt(prompt);
-      api.say(i === 0 ? `Let's count! Tap each ${kind.one} and count with me!` : prompt);
+      api.setPrompt(L.count.prompt(kind));
+      api.say(i === 0 ? L.count.intro(kind) : L.count.prompt(kind));
     }
 
     return { round };

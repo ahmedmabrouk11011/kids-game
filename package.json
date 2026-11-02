@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Static site. No build step; type=module only lets tools/list_lines.mjs import js/ in Node."
+}

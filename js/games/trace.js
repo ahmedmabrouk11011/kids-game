@@ -1,10 +1,11 @@
 // 3. Trace: a pencil shows how to write the number, then the kid traces it and presses ✔.
 // The check is forgiving: most of the number must be covered and most of the ink must be on it.
-import { h, Word, sleep } from '../util.js';
+import { h, icon, glyph, sleep } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
 import { attachInk } from '../ink.js';
 import { DIGITS } from '../digits.js';
+import { L } from '../lines.js';
 
 const CRAYONS = ['#ff4d4d', '#ffcc33', '#2ecc71', '#3fa9f5', '#ff5fa2'];
 const TRACK = 24; // width of the guide road, in digit units
@@ -17,7 +18,7 @@ const lineProps = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 
 export default {
   id: 'trace',
   title: 'Trace',
-  emoji: '✏️',
+  icon: 'pencil',
   color: '#ff8c42',
   create(api) {
     let color = CRAYONS[0];
@@ -33,10 +34,10 @@ export default {
 
       const svg = h('svg', { viewBox: `-22 -14 ${digit.w + 44} 196`, preserveAspectRatio: 'xMidYMid meet' });
       const canvas = h('canvas');
-      const board = h('div', { class: 'board' }, svg, canvas, h('div', { class: 'qty' }, '⭐'.repeat(n)));
+      const board = h('div', { class: 'board' }, svg, canvas, h('div', { class: 'qty' }, [...Array(n)].map(() => icon('star'))));
       const swatches = CRAYONS.map((c) => h('button', { class: 'swatch' + (c === color ? ' sel' : ''), style: `--c:${c}`, 'aria-label': 'Crayon colour' }));
-      const clearBtn = h('button', { class: 'big-btn clear', 'aria-label': 'Clear' }, '🧽');
-      const goBtn = h('button', { class: 'big-btn go', 'aria-label': 'Done' }, '✔');
+      const clearBtn = h('button', { class: 'big-btn clear', 'aria-label': 'Clear' }, icon('sponge'));
+      const goBtn = h('button', { class: 'big-btn go', 'aria-label': 'Done' }, glyph('check'));
       api.stage.replaceChildren(h('div', { class: 'trace' }, board, h('div', { class: 'tools' }, swatches, clearBtn, goBtn)));
 
       const layer = (attrs) => digit.strokes.map((d) => svg.appendChild(h('path', { d, ...lineProps, ...attrs })));
@@ -85,7 +86,7 @@ export default {
 
       async function demo() {
         const g = svg.appendChild(h('g'));
-        const pencil = h('div', { class: 'pencil' }, '✏️');
+        const pencil = h('div', { class: 'pencil' }, icon('pencil'));
         board.append(pencil);
         for (const d of digit.strokes) {
           const p = g.appendChild(h('path', { d, ...lineProps, stroke: '#ffcc33', 'stroke-width': 10 }));
@@ -164,7 +165,7 @@ export default {
         if (locked) return;
         if (!ink.hasInk()) {
           sfx.boing();
-          api.say(`Trace the ${Word(n).toLowerCase()} with your pencil first!`);
+          api.say(L.trace.inkFirst(n));
           return;
         }
         const res = score();
@@ -175,7 +176,7 @@ export default {
           sfx.ding();
           const r = board.getBoundingClientRect();
           burst(r.left + r.width / 2, r.top + r.height / 2, 70);
-          setTimeout(() => api.win({ num: n, praise: `Yes! That is ${Word(n).toLowerCase()}! ${api.great()}` }), 650);
+          setTimeout(() => api.win({ num: n, praise: [L.trace.yes(n), api.great()] }), 650);
           return;
         }
         tries++;
@@ -184,16 +185,15 @@ export default {
         // Show the parts he still needs to colour as orange dots.
         missedLayer.replaceChildren(...res.missed.filter((_, k) => k % 2 === 0).map((s) =>
           h('circle', { cx: s.u.x, cy: s.u.y, r: 5, fill: '#ff8c42', stroke: '#fff', 'stroke-width': 1.5 })));
-        api.say(res.cover < PASS_COVER ? 'Almost! Colour the orange dots too!' : 'Almost! Stay on the number. Try again!');
+        api.say(res.cover < PASS_COVER ? L.trace.dots : L.trace.stay);
         if (res.cover >= PASS_COVER) ink.clear();
       }
 
-      const prompt = `Trace the number ${Word(n).toLowerCase()} with your pencil!`;
-      api.setPrompt(prompt);
+      api.setPrompt(L.trace.prompt(n));
       (async () => {
-        api.say(i === 0 ? `This is ${Word(n).toLowerCase()}. Watch me first!` : `This is ${Word(n).toLowerCase()}. Watch!`);
+        api.say(i === 0 ? L.trace.intro(n) : L.trace.watch(n));
         await demo();
-        if (my === token) api.say(i === 0 ? 'Your turn! Trace it with your pencil, then press the green button.' : 'Your turn!');
+        if (my === token) api.say(i === 0 ? L.trace.turnFirst : L.trace.turn);
       })();
     }
 

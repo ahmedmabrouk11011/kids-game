@@ -1,19 +1,19 @@
 // 4. Apple Basket: see a number, tap that many apples into the basket, then press ✔.
 // Tap an apple in the basket to put it back on the tree.
-import { h, Word, replay } from '../util.js';
+import { h, icon, glyph, replay } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
+import { APPLE } from '../items.js';
+import { L } from '../lines.js';
 
 // Where the 12 apples hang, as fractions of the tree canopy box.
 const SPOTS = [[0.24, 0.3], [0.42, 0.18], [0.6, 0.2], [0.77, 0.32], [0.16, 0.5], [0.35, 0.42], [0.54, 0.42], [0.73, 0.5],
   [0.27, 0.66], [0.46, 0.64], [0.65, 0.68], [0.86, 0.6]];
 
-const apples = (n) => (n === 1 ? 'apple' : 'apples');
-
 function fly(from, to, done) {
   const a = from.getBoundingClientRect();
   const b = to.getBoundingClientRect();
-  const ghost = h('div', { class: 'apple flyer', style: `--sz:${a.width}px;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px;animation:none` }, '🍎');
+  const ghost = h('div', { class: 'apple flyer', style: `--sz:${a.width}px;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px;animation:none` }, icon('apple'));
   document.body.append(ghost);
   const dx = b.left + b.width / 2 - (a.left + a.width / 2);
   const dy = b.top + b.height / 2 - (a.top + a.height / 2);
@@ -29,7 +29,7 @@ function fly(from, to, done) {
 export default {
   id: 'basket',
   title: 'Apples',
-  emoji: '🧺',
+  icon: 'basket',
   color: '#2ecc71',
   create(api) {
     function round(i) {
@@ -41,9 +41,9 @@ export default {
       const tree = h('div', { class: 'tree' }, h('div', { class: 'canopy' }), h('div', { class: 'trunk' }));
       const count = h('div', { class: 'count' }, '0');
       const basket = h('div', { class: 'basket' }, count);
-      const goBtn = h('button', { class: 'big-btn go', 'aria-label': 'Done' }, '✔');
+      const goBtn = h('button', { class: 'big-btn go', 'aria-label': 'Done' }, glyph('check'));
       api.stage.replaceChildren(h('div', { class: 'orchard' },
-        h('div', { class: 'target-card' }, String(n), h('span', { class: 'small' }, '🍎')),
+        h('div', { class: 'target-card' }, String(n), icon('apple', 'small')),
         tree,
         h('div', { class: 'basket-col' }, basket, goBtn)));
 
@@ -55,11 +55,11 @@ export default {
       const setCount = () => { count.textContent = inBasket; replay(count, 'jump'); };
 
       SPOTS.forEach(([fx, fy], k) => {
-        const apple = h('div', { class: 'apple', style: `--sz:${size}px;left:${tr.width * 0.04 + fx * cw}px;top:${fy * ch}px;animation-delay:${k * 40}ms` }, '🍎');
+        const apple = h('div', { class: 'apple', style: `--sz:${size}px;left:${tr.width * 0.04 + fx * cw}px;top:${fy * ch}px;animation-delay:${k * 40}ms` }, icon('apple'));
         apple.addEventListener('pointerdown', () => {
           if (locked || moving > 1) return;
           if (apple.parentElement === tree) {
-            const slot = h('div', { class: 'apple', style: 'visibility:hidden;animation:none' }, '🍎');
+            const slot = h('div', { class: 'apple', style: 'visibility:hidden;animation:none' }, icon('apple'));
             basket.append(slot);
             apple.style.visibility = 'hidden';
             moving++;
@@ -76,7 +76,7 @@ export default {
             });
             inBasket++;
             sfx.note(inBasket - 1);
-            api.say(Word(inBasket));
+            api.say(L.num(inBasket));
           } else {
             apple.style.visibility = 'hidden';
             const home = h('div', { class: 'apple', style: `--sz:${size}px;left:${apple.dataset.left};top:${apple.dataset.top};visibility:hidden;animation:none` });
@@ -93,7 +93,7 @@ export default {
             });
             inBasket--;
             sfx.whoosh();
-            api.say(Word(inBasket));
+            api.say(L.num(inBasket));
           }
           setCount();
         });
@@ -107,21 +107,18 @@ export default {
           sfx.ding();
           const r = basket.getBoundingClientRect();
           burst(r.left + r.width / 2, r.top, 70);
-          setTimeout(() => api.win({ num: n, praise: `Yes! ${Word(n)} ${apples(n)}! ${api.great()}` }), 500);
+          setTimeout(() => api.win({ num: n, praise: [L.yes, L.count.got(n, APPLE), api.great()] }), 500);
           return;
         }
         sfx.boing();
         replay(basket, 'wrong-shake');
-        if (inBasket === 0) { api.say(`Tap the apples to put ${Word(n).toLowerCase()} in the basket!`); return; }
+        if (inBasket === 0) { api.say(L.basket.tapToPut(n)); return; }
         api.mistake();
-        api.say(inBasket > n
-          ? `Oops, too many! We need ${Word(n).toLowerCase()}. Tap an apple in the basket to take it out.`
-          : `We need more apples! We need ${Word(n).toLowerCase()}.`);
+        api.say(inBasket > n ? [L.basket.tooMany(n), L.basket.takeOut] : L.basket.more(n));
       });
 
-      const prompt = `Put ${Word(n).toLowerCase()} ${apples(n)} in the basket!`;
-      api.setPrompt(prompt);
-      api.say(i === 0 ? `${prompt} Then press the green button.` : prompt);
+      api.setPrompt(L.basket.prompt(n));
+      api.say(i === 0 ? [L.basket.prompt(n), L.thenGreen] : L.basket.prompt(n));
     }
 
     return { round };

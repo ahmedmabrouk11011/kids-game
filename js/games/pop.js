@@ -1,7 +1,8 @@
 // 5. Balloon Pop: balloons with numbers float up. Pop the one with the number shown (and said) at the top.
-import { h, Word, rand, pick, clamp, replay } from '../util.js';
+import { h, icon, rand, pick, clamp, replay } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
+import { L } from '../lines.js';
 
 const COLORS = ['#e63946', '#ff8c42', '#ffcc33', '#2ecc71', '#3fa9f5', '#9b5de5', '#ff5fa2', '#00c2a8'];
 const LANES = 6;
@@ -9,7 +10,7 @@ const LANES = 6;
 export default {
   id: 'pop',
   title: 'Balloons',
-  emoji: '🎈',
+  icon: 'balloon',
   color: '#9b5de5',
   create(api) {
     let field = null;
@@ -61,12 +62,12 @@ export default {
         const r = b.el.getBoundingClientRect();
         burst(r.left + r.width / 2, r.top + r.height / 2, 60, [b.color, '#ffffff', '#ffcc33']);
         setTimeout(() => b.el.remove(), 260);
-        setTimeout(() => api.win({ num: target, praise: `Pop! ${Word(target)}! ${api.great()}` }), 350);
+        setTimeout(() => api.win({ num: target, praise: [L.pop.pop, L.num(target), api.great()] }), 350);
       } else {
         replay(b.el, 'nope');
         sfx.boing();
         api.mistake();
-        api.say(`That's ${Word(b.n).toLowerCase()}. Find ${Word(target).toLowerCase()}!`);
+        api.say(L.pop.thats(b.n), L.pop.find(target));
       }
     }
 
@@ -106,11 +107,10 @@ export default {
         }
         raf = requestAnimationFrame(frame);
       }
-      pill.replaceChildren('🎈', String(target));
+      pill.replaceChildren(icon('balloon'), String(target));
       replay(pill, 'new');
-      const prompt = `Pop number ${Word(target).toLowerCase()}!`;
-      api.setPrompt(prompt);
-      api.say(i === 0 ? `Pop the balloon with number ${Word(target).toLowerCase()}!` : `Now pop number ${Word(target).toLowerCase()}!`);
+      api.setPrompt(L.pop.prompt(target));
+      api.say(i === 0 ? L.pop.intro(target) : L.pop.now(target));
     }
 
     return {

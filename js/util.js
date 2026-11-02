@@ -18,7 +18,7 @@ export function shuffle(arr) {
 
 // Tiny element builder: h('div', {class: 'x', style: '--c:red', onclick: fn}, child, ...)
 export function h(tag, props = {}, ...kids) {
-  const svg = ['svg', 'g', 'path', 'circle', 'polygon', 'polyline', 'line', 'text', 'rect'].includes(tag);
+  const svg = ['svg', 'g', 'path', 'circle', 'polygon', 'polyline', 'line', 'text', 'rect', 'image'].includes(tag);
   const el = svg ? document.createElementNS('http://www.w3.org/2000/svg', tag) : document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null || v === false) continue;
@@ -28,6 +28,30 @@ export function h(tag, props = {}, ...kids) {
   }
   for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid);
   return el;
+}
+
+// Sharp vector icon (Microsoft Fluent Emoji, MIT) sized like text: font-size sets its size.
+// Emoji fonts on Android/Huawei are small bitmaps that look blurry when big, so we never show big emoji.
+export const icon = (name, cls = '') =>
+  h('img', { class: `ico ${cls}`.trim(), src: `img/icons/${name}.svg`, alt: '', draggable: 'false' });
+
+// The kid's hero picture (Shadow or Sonic), cut out from the coloring-book art.
+export const hero = (name, cls = '') =>
+  h('img', { class: `hero-img ${cls}`.trim(), src: `img/chars/${name}.webp`, alt: '', draggable: 'false' });
+
+// Plain shapes for buttons (text glyphs like ✔ and ▶ turn into blurry emoji on some tablets).
+const GLYPHS = {
+  check: '<path d="M5 13l5 5L20 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  play: '<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  del: '<path d="M9 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-6-6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 10l5 4m0-4l-5 4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+  full: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+export function glyph(name) {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('class', 'glyph');
+  s.innerHTML = GLYPHS[name];
+  return s;
 }
 
 // Restart a CSS animation class on an element.

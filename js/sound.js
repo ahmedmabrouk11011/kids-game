@@ -1,7 +1,9 @@
-// Sounds are made in code (Web Audio) and words use the tablet's built-in voice
-// (speechSynthesis). No audio files, no paid voices. If the device has no voice, the games still work.
+// Sound effects are made in code (Web Audio). Spoken lines are recordings made on the Mac with a free voice
+// (see lines.js and tools/make_voice.py); the device's own voice only reads lines that have no recording.
+import { voiceKey } from './lines.js';
 
 let ctx = null;
+let voiceOut = null;
 let muted = false;
 
 export function setMuted(m) { muted = m; if (m) stopSpeech(); }
@@ -9,7 +11,12 @@ export function isMuted() { return muted; }
 
 export function unlock() {
   try {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      voiceOut = ctx.createGain();
+      voiceOut.gain.value = 1.15;
+      voiceOut.connect(ctx.destination);
+    }
     if (ctx.state === 'suspended') ctx.resume();
   } catch { /* no audio */ }
 }
@@ -65,42 +72,103 @@ export const sfx = {
 };
 
 // ---------- speech ----------
-const synth = window.speechSynthesis;
-let voice = null;
+let manifest = {};
+const manifestReady = fetch('audio/manifest.json')
+  .then((r) => (r.ok ? r.json() : {}))
+  .catch(() => ({}))
+  .then((m) => { manifest = m; });
 
-function chooseVoice() {
-  if (!synth) return;
-  const voices = synth.getVoices().filter((v) => /^en[-_]/i.test(v.lang));
-  const liked = ['Samantha', 'Google US English', 'Karen', 'Moira', 'Tessa', 'Zira', 'Aria', 'Jenny', 'Female'];
-  voice = liked.map((n) => voices.find((v) => v.name.includes(n))).find(Boolean)
-    || voices.find((v) => /en[-_]US/i.test(v.lang)) || voices[0] || null;
+const clips = new Map(); // file -> Promise<AudioBuffer | null>
+function loadClip(file) {
+  if (!clips.has(file)) {
+    unlock();
+    clips.set(file, fetch(`audio/${file}`)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+      .then((buf) => new Promise((res, rej) => ctx.decodeAudioData(buf, res, rej)))
+      .catch(() => { clips.delete(file); return null; }));
+  }
+  return clips.get(file);
 }
-if (synth) {
-  chooseVoice();
-  synth.addEventListener?.('voiceschanged', chooseVoice);
+
+// Fetch lines ahead of time (e.g. the numbers at the start of a game) so they play without delay.
+export async function preload(...texts) {
+  await manifestReady;
+  for (const t of texts.flat()) { const f = manifest[voiceKey(t)]; if (f) loadClip(f); }
 }
+
+// Things that want to know when the voice talks (the mascot bounces).
+const listeners = new Set();
+export const onTalk = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
+const talking = (on) => listeners.forEach((fn) => fn(on));
 
 let sayToken = 0;
+let current = null;
 
 export function stopSpeech() {
   sayToken++;
-  try { synth?.cancel(); } catch { /* ignore */ }
+  try { current?.stop(); } catch { /* already stopped */ }
+  current = null;
+  try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+  talking(false);
 }
 
-// Speak a line. Resolves when finished (or right away when there is no voice / muted).
-// A newer say() cuts off the older one, so fast tapping never queues up.
-export function say(text) {
+// Missing recordings are collected here so tests can spot them.
+export const missingVoice = new Set();
+
+// Say one or more lines, one after the other. Resolves true when finished, false when cut off by a newer say().
+export async function say(...parts) {
   stopSpeech();
-  if (muted || !synth || !text) return Promise.resolve();
   const my = sayToken;
+  parts = parts.flat().filter((p) => typeof p === 'string' && p);
+  if (muted || !parts.length) return true;
+  await manifestReady;
+  const files = parts.map((p) => manifest[voiceKey(p)]);
+  files.forEach((f) => f && loadClip(f));
+  talking(true);
+  for (let i = 0; i < parts.length; i++) {
+    const buf = files[i] ? await loadClip(files[i]) : null;
+    if (my !== sayToken) return false;
+    if (buf) await playClip(buf);
+    else { missingVoice.add(parts[i]); await speakDevice(parts[i]); }
+    if (my !== sayToken) return false;
+  }
+  talking(false);
+  return true;
+}
+
+function playClip(buf) {
+  return new Promise((resolve) => {
+    unlock();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(voiceOut);
+    current = src;
+    const done = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(done, buf.duration * 1000 + 400);
+    src.onended = done;
+    src.start();
+  });
+}
+
+// Fallback: the device's own voice (often missing on Huawei tablets, which is why we record the lines).
+const synth = window.speechSynthesis;
+let deviceVoice = null;
+function chooseVoice() {
+  const voices = synth.getVoices().filter((v) => /^en[-_]/i.test(v.lang));
+  deviceVoice = voices.find((v) => /Samantha|Google US English|Female/.test(v.name)) || voices[0] || null;
+}
+if (synth) { chooseVoice(); synth.addEventListener?.('voiceschanged', chooseVoice); }
+
+function speakDevice(text) {
+  if (!synth) return Promise.resolve();
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
-    if (voice) u.voice = voice;
-    u.lang = voice?.lang || 'en-US';
+    if (deviceVoice) u.voice = deviceVoice;
+    u.lang = deviceVoice?.lang || 'en-US';
     u.rate = 0.9;
-    u.pitch = 1.15;
-    const done = () => { clearTimeout(timer); resolve(my === sayToken); };
-    const timer = setTimeout(done, 1500 + text.length * 110);
+    u.pitch = 1.1;
+    const done = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(done, 1200 + text.length * 90);
     u.onend = done;
     u.onerror = done;
     synth.speak(u);

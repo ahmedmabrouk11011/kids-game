@@ -1,29 +1,37 @@
-// Things to count. Emoji only (free, no images). No gold rings: drawn rings look like the digit 0.
+// Things to count: sharp vector icons, and the kid's hero (Shadow) in the first round.
 import { h, shuffle } from './util.js';
 
 export const ITEMS = [
-  { e: '🦔', one: 'hedgehog', many: 'hedgehogs' },
-  { e: '🍎', one: 'apple', many: 'apples' },
-  { e: '⭐', one: 'star', many: 'stars' },
-  { e: '🎈', one: 'balloon', many: 'balloons' },
-  { e: '🐟', one: 'fish', many: 'fish' },
-  { e: '🚗', one: 'car', many: 'cars' },
-  { e: '🦆', one: 'duck', many: 'ducks' },
-  { e: '🍌', one: 'banana', many: 'bananas' },
-  { e: '🐞', one: 'ladybug', many: 'ladybugs' },
-  { e: '🍓', one: 'strawberry', many: 'strawberries' },
-  { e: '⚽', one: 'ball', many: 'balls' },
-  { e: '🐶', one: 'puppy', many: 'puppies' },
+  { icon: 'apple', one: 'apple', many: 'apples' },
+  { icon: 'star', one: 'star', many: 'stars' },
+  { icon: 'balloon', one: 'balloon', many: 'balloons' },
+  { icon: 'fish', one: 'fish', many: 'fish' },
+  { icon: 'car', one: 'car', many: 'cars' },
+  { icon: 'duck', one: 'duck', many: 'ducks' },
+  { icon: 'banana', one: 'banana', many: 'bananas' },
+  { icon: 'ladybug', one: 'ladybug', many: 'ladybugs' },
+  { icon: 'strawberry', one: 'strawberry', many: 'strawberries' },
+  { icon: 'ball', one: 'ball', many: 'balls' },
+  { icon: 'puppy', one: 'puppy', many: 'puppies' },
+  { icon: 'butterfly', one: 'butterfly', many: 'butterflies' },
+  { icon: 'rocket', one: 'rocket', many: 'rockets' },
 ];
+export const HEROES = {
+  shadow: { hero: 'shadow', one: 'Shadow', many: 'Shadows' },
+  sonic: { hero: 'sonic', one: 'Sonic', many: 'Sonics' },
+};
+export const APPLE = ITEMS[0];
 
 export const itemName = (kind, n) => (n === 1 ? kind.one : kind.many);
 
-// A different item for each round; the hedgehog (Shadow's family) always comes first.
-export function itemDeck() {
-  const [hedgehog, ...rest] = ITEMS;
-  return [hedgehog, ...shuffle(rest)];
+// A different item for each round; the kid's hero comes first.
+export function itemDeck(heroName) {
+  const rest = shuffle(ITEMS);
+  return HEROES[heroName] ? [HEROES[heroName], ...rest] : rest;
 }
 
 export function itemEl(kind, x, y, size) {
-  return h('div', { class: 'item', style: `left:${x}px;top:${y}px;--sz:${size}px` }, kind.e);
+  const src = kind.hero ? `img/chars/${kind.hero}.webp` : `img/icons/${kind.icon}.svg`;
+  return h('div', { class: 'item' + (kind.hero ? ' is-hero' : ''), style: `left:${x}px;top:${y}px;--sz:${size}px` },
+    h('img', { src, alt: '', draggable: 'false' }));
 }

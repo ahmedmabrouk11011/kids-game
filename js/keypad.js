@@ -1,5 +1,5 @@
 // Big number pad (1-9, ⌫, 0, ✔) for typed answers. What is typed shows in `slot` (any element, also SVG text).
-import { h, replay } from './util.js';
+import { h, glyph, replay } from './util.js';
 import { sfx } from './sound.js';
 
 export function keypad({ slot, maxLen = 3, onSubmit, onChange }) {
@@ -13,7 +13,8 @@ export function keypad({ slot, maxLen = 3, onSubmit, onChange }) {
   const el = h('div', { class: 'keypad' });
   for (const k of ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✔']) {
     const label = k === '✔' ? 'Check' : k === '⌫' ? 'Delete' : k;
-    const b = h('button', { class: 'key' + (k === '✔' ? ' ok' : k === '⌫' ? ' del' : ''), 'aria-label': label }, k);
+    const face = k === '✔' ? glyph('check') : k === '⌫' ? glyph('del') : k;
+    const b = h('button', { class: 'key' + (k === '✔' ? ' ok' : k === '⌫' ? ' del' : ''), 'aria-label': label }, face);
     b.addEventListener('click', () => {
       if (locked) return;
       replay(b, 'tapped');

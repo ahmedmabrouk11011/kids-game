@@ -1,24 +1,20 @@
 // Youssef 2. Make Pairs: tap two cards that together make the target (7, 8, 10 ... and 20 at the end).
-import { h, shuffle, replay } from '../util.js';
+import { h, icon, shuffle, replay } from '../util.js';
 import { sfx } from '../sound.js';
 import { burst } from '../fx.js';
+import { PAIR_TARGETS, pairsFor } from '../mathgen.js';
+import { L } from '../lines.js';
 
-const TARGETS = [7, 10, 8, 10, 20];
 const COLORS = ['#ff5fa2', '#3fa9f5', '#ff8c42', '#9b5de5', '#2ecc71', '#00c2a8', '#e63946', '#ffcc33'];
-
-function pairsFor(T) {
-  const lows = T === 20 ? [5, 6, 7, 8, 9, 10] : [...Array(Math.floor(T / 2) + 1).keys()];
-  return shuffle(lows).slice(0, 4).map((a) => [a, T - a]);
-}
 
 export default {
   id: 'pairs',
   title: 'Make Pairs',
-  emoji: '🃏',
+  icon: 'joker',
   color: '#3fa9f5',
   create(api) {
     function round(i) {
-      const T = TARGETS[i];
+      const T = PAIR_TARGETS[i];
       const pairs = pairsFor(T);
       let left = pairs.length;
       let picked = null;
@@ -27,7 +23,7 @@ export default {
       const found = h('div', { class: 'found' });
       const grid = h('div', { class: 'cards' });
       api.stage.replaceChildren(h('div', { class: 'pairs' },
-        h('div', { class: 'target-card' }, '🎯', h('span', { class: 'small' }, 'Make'), String(T)),
+        h('div', { class: 'target-card' }, icon('target', 'small'), h('span', { class: 'small' }, 'Make'), String(T)),
         found, grid));
 
       shuffle(pairs.flat()).forEach((n, k) => {
@@ -51,19 +47,18 @@ export default {
           left--;
           if (left === 0) {
             busy = true;
-            setTimeout(() => api.win({ text: `🎯 ${T}`, praise: `You found all the pairs that make ${T}! ${api.great()}` }), 600);
-          } else api.say(`${first.n} and ${n} make ${T}!`);
+            setTimeout(() => api.win({ text: `Make ${T}`, praise: [L.pairs.all(T), api.great()] }), 600);
+          } else api.say(L.makes(Math.min(first.n, n), Math.max(first.n, n), T));
           return;
         }
         api.mistake();
         sfx.boing();
         [first.c, c].forEach((x) => { x.classList.remove('sel'); replay(x, 'shake-it'); });
-        api.say(`${first.n} and ${n} make ${first.n + n}. We need ${T}!`);
+        api.say(L.makes(Math.min(first.n, n), Math.max(first.n, n), first.n + n), L.pairs.need(T));
       }
 
-      const prompt = `Find two numbers that make ${T}!`;
-      api.setPrompt(prompt);
-      api.say(i === 0 ? `Tap two cards that make ${T} together!` : prompt);
+      api.setPrompt(L.pairs.prompt(T));
+      api.say(i === 0 ? L.pairs.intro(T) : L.pairs.prompt(T));
     }
 
     return { round };
