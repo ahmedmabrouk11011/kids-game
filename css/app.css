@@ -213,10 +213,10 @@ button {
   flex: none;
 }
 .numstrip button {
-  width: min(8.5vw, 11vh, 76px);
-  height: min(8.5vw, 11vh, 76px);
+  width: min(7.6vw, 11vh, 76px);
+  height: min(7.6vw, 11vh, 76px);
   border-radius: 20px;
-  font-size: min(5.5vw, 7vh, 48px);
+  font-size: min(5vw, 7vh, 48px);
   font-weight: 700;
   background: var(--c);
   border-bottom: 6px solid rgba(0, 0, 0, .3);
