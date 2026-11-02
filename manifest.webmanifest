@@ -1,0 +1,12 @@
+{
+  "name": "Kids Learn",
+  "short_name": "Kids Learn",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#140f33",
+  "theme_color": "#140f33",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
