@@ -9,7 +9,7 @@ let current = null;
 
 export function closeReward() { current?.(true); }
 
-export function showReward({ num, emoji, autoMs = 9000 } = {}) {
+export function showReward({ num, emoji, text, autoMs = 9000 } = {}) {
   closeReward();
   return new Promise((resolve) => {
     const overlay = document.getElementById('overlay');
@@ -18,8 +18,8 @@ export function showReward({ num, emoji, autoMs = 9000 } = {}) {
     const next = h('button', { class: 'next-btn', 'aria-label': 'Next' }, '▶');
     box.append(
       h('div', { class: 'hero' },
-        h('div', { class: 'hero-num' }, emoji || String(num)),
-        num ? h('div', { class: 'hero-sub' }, '⭐'.repeat(num)) : null),
+        text ? h('div', { class: 'hero-num hero-text' }, text) : h('div', { class: 'hero-num' }, emoji || String(num)),
+        !text && num > 0 && num <= 10 ? h('div', { class: 'hero-sub' }, '⭐'.repeat(num)) : null),
       h('div', { class: 'hint' }, '👆 🎈 ⭐'),
       score, next);
     overlay.append(box);

@@ -1,4 +1,4 @@
-import { h, pick, replay, Word } from './util.js';
+import { h, pick, replay, sleep, Word } from './util.js';
 import { say, sfx, unlock, stopSpeech, setMuted, isMuted } from './sound.js';
 import { burst, rain, clearFx } from './fx.js';
 import { showReward, closeReward } from './reward.js';
@@ -7,10 +7,12 @@ import { GAMES } from './games/index.js';
 
 const ROUNDS = 5;
 
+// strip: the row of number buttons under the menu ('count' = 1-10, 'bonds' = rainbow pairs that make 10).
 const KIDS = {
-  omar: { name: 'Omar', face: '🦔', theme: 'omar', title: 'Numbers', sub: '1 – 10', games: ['count', 'howmany', 'trace', 'basket', 'pop', 'dots'] },
-  youssef: { name: 'Youssef', face: '🦔', theme: 'youssef', sub: 'Soon!', locked: true },
+  omar: { name: 'Omar', face: '🦔', theme: 'omar', title: 'Numbers', sub: '1 – 10', strip: 'count', games: ['count', 'howmany', 'trace', 'basket', 'pop', 'dots'] },
+  youssef: { name: 'Youssef', face: '🦔', theme: 'youssef', title: 'Math', sub: '1 – 100', strip: 'bonds', games: ['bond', 'pairs', 'balance', 'race', 'train', 'tens'] },
 };
+const STRIP_COLORS = ['#e63946', '#ff8c42', '#ffcc33', '#2ecc71', '#00c2a8', '#3fa9f5', '#9b5de5', '#ff5fa2', '#e63946', '#ff8c42'];
 
 const app = document.getElementById('app');
 let cleanup = null;
@@ -84,19 +86,7 @@ function menu(kidId) {
     h('div', { class: 'label' }, g.title),
     h('div', { class: 'stars' }, [1, 2, 3].map((s) => h('span', { class: s <= best ? '' : 'dim' }, '⭐'))));
   });
-  const colors = ['#e63946', '#ff8c42', '#ffcc33', '#2ecc71', '#00c2a8', '#3fa9f5', '#9b5de5', '#ff5fa2', '#e63946', '#ff8c42'];
-  const strip = [...Array(10)].map((_, i) => {
-    const n = i + 1;
-    const b = h('button', { style: `--c:${colors[i]}` }, String(n));
-    b.addEventListener('click', () => {
-      replay(b, 'jump');
-      sfx.note(i);
-      say(Word(n));
-      const r = b.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top, n * 6);
-    });
-    return b;
-  });
+  const strip = kid.strip === 'bonds' ? bondStrip() : countStrip();
   app.replaceChildren(
     h('div', { class: 'bar' },
       h('button', { class: 'round-btn', 'aria-label': 'Back', onclick: () => { location.hash = '#/'; } }, '⬅️'),
@@ -108,6 +98,35 @@ function menu(kidId) {
     h('div', { class: 'numstrip' }, strip));
 }
 
+function countStrip() {
+  return [...Array(10)].map((_, i) => {
+    const n = i + 1;
+    const b = h('button', { style: `--c:${STRIP_COLORS[i]}` }, String(n));
+    b.addEventListener('click', () => {
+      replay(b, 'jump');
+      sfx.note(i);
+      say(Word(n));
+      const r = b.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top, n * 6);
+    });
+    return b;
+  });
+}
+
+// 0-10 where partners share a colour (3 and 7, 4 and 6 ...). Tap one: both jump and the bond is said.
+function bondStrip() {
+  const btns = [...Array(11)].map((_, n) => h('button', { style: `--c:${STRIP_COLORS[Math.min(n, 10 - n)]}` }, String(n)));
+  btns.forEach((b, n) => b.addEventListener('click', () => {
+    replay(b, 'jump');
+    replay(btns[10 - n], 'jump');
+    sfx.note(n);
+    say(`${n} and ${10 - n} make 10!`);
+    const r = btns[10 - n].getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top, 30, [STRIP_COLORS[Math.min(n, 10 - n)], '#ffffff']);
+  }));
+  return btns;
+}
+
 function runGame(kidId, gameId) {
   const kid = KIDS[kidId];
   const game = GAMES[gameId];
@@ -117,7 +136,8 @@ function runGame(kidId, gameId) {
   let prompt = '';
   let busy = false;
 
-  const dots = [...Array(ROUNDS)].map(() => h('span'));
+  const rounds = game.rounds || ROUNDS;
+  const dots = [...Array(rounds)].map(() => h('span'));
   const stage = h('div', { class: 'stage' });
   app.replaceChildren(
     h('div', { class: 'bar' },
@@ -126,27 +146,38 @@ function runGame(kidId, gameId) {
       h('button', { class: 'round-btn', 'aria-label': 'Say it again', onclick: () => say(prompt) }, '🗣️')),
     stage);
 
-  // Deck of numbers for the rounds: 5 different numbers from 1-10.
-  const deck = [...Array(10)].map((_, i) => i + 1).sort(() => Math.random() - 0.5).slice(0, ROUNDS);
+  // Deck of numbers for the rounds: different numbers from 1-10.
+  const deck = [...Array(10)].map((_, i) => i + 1).sort(() => Math.random() - 0.5).slice(0, rounds);
 
   const api = {
-    stage, kid, deck, rounds: ROUNDS,
+    stage, kid, deck, rounds,
     alive: () => alive,
     say: (t) => (alive ? say(t) : Promise.resolve(false)),
     setPrompt(t) { prompt = t; },
     mistake() { mistakes++; },
     great: () => pick(greats(kid)),
     // Called by a game when the round is solved: reward screen, then the next round (or the trophy).
-    async win({ num, emoji, praise }) {
+    // quick: a short cheer instead of the reward screen (for fast quiz games); quiet: no cheer at all.
+    async win({ num, emoji, text, praise, quick, quiet }) {
       if (!alive || busy) return;
       busy = true;
       dots[round].classList.add('on');
-      api.say(praise || `${Word(num)}! ${api.great()}`);
-      await showReward({ num, emoji });
+      const line = praise ?? `${Word(num)}! ${api.great()}`;
+      if (quick) {
+        if (!quiet) {
+          sfx.tada();
+          const r = stage.getBoundingClientRect();
+          burst(r.left + r.width / 2, r.top + r.height / 3, 60);
+        }
+        await Promise.all([api.say(line), sleep(quiet ? 1800 : 1100)]);
+      } else {
+        api.say(line);
+        await showReward({ num, emoji, text });
+      }
       if (!alive) return;
       busy = false;
       round++;
-      if (round < ROUNDS) inst.round(round);
+      if (round < rounds) inst.round(round);
       else finish();
     },
   };
@@ -156,7 +187,7 @@ function runGame(kidId, gameId) {
   inst.round(0);
 
   function finish() {
-    const stars = mistakes <= 1 ? 3 : mistakes <= 4 ? 2 : 1;
+    const stars = mistakes <= rounds * 0.2 ? 3 : mistakes <= rounds * 0.8 ? 2 : 1;
     store.addResult(kidId, gameId, stars);
     inst.destroy?.();
     const again = h('button', { class: 'big-btn go', 'aria-label': 'Play again', onclick: () => { sfx.ding(); route(); } }, '🔁');
@@ -182,6 +213,7 @@ function route() {
   stopSpeech();
   const [kidId, gameId] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const kid = KIDS[kidId];
+  document.body.dataset.kid = kid && !kid.locked ? kidId : '';
   if (!kid || kid.locked) return kidPicker();
   if (gameId && GAMES[gameId] && kid.games.includes(gameId)) cleanup = runGame(kidId, gameId);
   else menu(kidId);

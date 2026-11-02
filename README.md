@@ -25,6 +25,22 @@ It is one static page (HTML, CSS and plain JavaScript modules). There is no buil
 - 🗣️ repeats the instruction, 🔊 turns the sound off and on, and ⛶ switches to full screen.
 - **Pencil:** while the pencil is in use, touches from the palm are ignored, so he can rest his hand on the screen.
 
+## Youssef: Math 1–100 (number bonds 0–10 first)
+
+A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "whole" circle joined to two "part" circles, or as two colours of counters in a ten frame. Youssef types most answers on a big number pad (1–9, ⌫, 0, ✔). Every game gets harder round by round.
+
+| Game | What he does | Gets harder like this |
+|---|---|---|
+| 🍒 Number Bond | Fill in the missing part or the whole | bead hints → missing whole → bonds of 10 → bonds with 0 |
+| 🃏 Make Pairs | Tap two cards that make the target | make 7, 10, 8, 10, then 20 |
+| ⚖️ Balance | Type the number that makes the scale level (it tilts live while he types) | `a+?=c`, `?+b=c`, `10=a+?`, `a−b=?`, `a+b=c+?` |
+| 🏁 Math Race | 10 quick sums; each answer moves the hedgehog toward the flag | + and − within 10 → teens → make 10 → doubles |
+| 🚂 Number Train | The missing number in a train of numbers | by 1s → across a ten → by 10s → by 2s/5s → to 100 or backwards |
+| 🧱 Tens & Ones | Read rods and cubes, then build numbers with +10 / +1 | 11–19 → up to 49 → whole tens → build up to 99 |
+
+- **Menu strip:** the 0–10 row on his menu colours bond partners alike (3 and 7, 4 and 6 ...). Tapping one says the bond.
+- **Wrong answers:** a wrong answer gives a hint, never a dead end. In the race, a second miss shows the answer and moves on.
+
 ## Run it on this Mac
 
 ```bash
@@ -49,4 +65,5 @@ Then open http://localhost:8321. A plain double-click on `index.html` won't work
   - `stage` and `deck` (the numbers for the 5 rounds)
   - `say(text)`, `setPrompt(text)` and `mistake()`
   - `win({num | emoji, praise})`, which plays the reward screen and starts the next round
-- **Youssef:** his card is locked for now. Set `locked: false` and give him a `games` list in `KIDS` in `js/app.js`.
+- **New kid or topic:** add an entry to `KIDS` in `js/app.js`, with `games`, `title`, `sub` and `strip` (`count` or `bonds`).
+- **Number pad and round count:** use `keypad()` / `qaLayout()` from `js/keypad.js` for typed answers. A game can set `rounds` (the race has 10). `win({ text })` shows a sum like `3 + 4 = 7` on the reward screen. `win({ quick: true })` gives a short cheer instead.

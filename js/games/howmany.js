@@ -25,15 +25,7 @@ export default {
       const choices = h('div', { class: 'choices' });
       api.stage.replaceChildren(h('div', { class: 'field with-choices' }, area, choices));
 
-      const r = area.getBoundingClientRect();
-      const { size, pts } = scatter(n, r.width - 20, r.height - 10);
-      const els = pts.map((p, k) => {
-        const el = itemEl(kind, p.x + 10, p.y + 5, size);
-        el.style.animationDelay = `${k * 60}ms`;
-        area.append(el);
-        return el;
-      });
-
+      let els = [];
       let counting = false;
       async function countTogether() {
         counting = true;
@@ -69,6 +61,16 @@ export default {
           }
         });
         choices.append(b);
+      });
+
+      // Measure only after the number buttons are in, so the objects never sit on top of them.
+      const r = area.getBoundingClientRect();
+      const { size, pts } = scatter(n, r.width - 20, r.height - 10);
+      els = pts.map((p, k) => {
+        const el = itemEl(kind, p.x + 10, p.y + 5, size);
+        el.style.animationDelay = `${k * 60}ms`;
+        area.append(el);
+        return el;
       });
 
       const prompt = `How many ${kind.many}?`;

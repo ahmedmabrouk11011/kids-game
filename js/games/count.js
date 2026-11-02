@@ -18,8 +18,10 @@ export default {
       const counter = h('div', { class: 'counter' }, '0');
       api.stage.replaceChildren(field, counter);
 
+      // Keep the objects (and their number badges) clear of the counter at the bottom.
       const r = field.getBoundingClientRect();
-      const { size, pts } = scatter(n, r.width - 20, r.height - 120);
+      const reserved = r.bottom - counter.getBoundingClientRect().top + 16;
+      const { size, pts } = scatter(n, r.width - 20, r.height - reserved - 10);
       let count = 0;
 
       pts.forEach((p, k) => {
