@@ -180,7 +180,7 @@ button {
   width: 100%;
   margin: 0 auto;
 }
-@media (orientation: portrait) { .menu { grid-template-columns: repeat(2, 1fr); } }
+@media (max-aspect-ratio: 4/5) { .menu { grid-template-columns: repeat(2, 1fr); } }
 .tile {
   border-radius: 30px;
   padding: 14px 10px 12px;
@@ -195,7 +195,7 @@ button {
   transition: transform .15s;
 }
 .tile:active { transform: scale(.94) translateY(4px); }
-.tile .emo { font-size: min(11vw, 13vh, 84px); line-height: 1.1; }
+.tile .emo { font-size: min(11vw, 9vh, 84px); line-height: 1.1; }
 .tile .label { font-size: min(4.2vw, 28px); font-weight: 700; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
 .tile .stars { font-size: min(3.4vw, 24px); letter-spacing: 2px; min-height: 1.2em; }
 .tile .stars .dim { filter: grayscale(1) brightness(1.6); opacity: .35; }
