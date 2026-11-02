@@ -1,4 +1,4 @@
-// Coloring: the pages from the kid's own coloring book (Shadow or Sonic).
+// Coloring (Omar): the pages from his own Shadow coloring book.
 // A tap fills a space; drawing with the pencil colours inside the lines only (it never goes over a line).
 import { h, icon, glyph, replay } from '../util.js';
 import { sfx } from '../sound.js';

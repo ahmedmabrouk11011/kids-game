@@ -7,7 +7,7 @@ Live at https://ahmedmabrouk11011.github.io/kids-game/. It is one static page (H
 - **Pictures:**
   - Sharp vector icons ([Fluent Emoji](https://github.com/microsoft/fluentui-emoji), MIT).
   - Shadow and Sonic, cut out from the coloring-book art.
-  - The kids' own coloring pages, as SVG.
+  - Omar's own coloring pages, as SVG.
   - No big emoji: emoji are small bitmaps on Android and look blurry when big.
 - **Sounds:** made in code with Web Audio.
 - **Progress:** stars are saved in the browser (`localStorage`) on that device only.
@@ -40,7 +40,6 @@ A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "who
 | Pen Math ✏️ | Write the answer with the pencil, one digit per box. The box shows what it read; the sponge clears it | single digits → make 10 → teens |
 | Number Train | The missing number in a train of numbers | by 1s → across a ten → by 10s → by 2s/5s → to 100 or backwards |
 | Tens & Ones | Read rods and cubes, then build numbers with +10 / +1 | 11–19 → up to 49 → whole tens → build up to 99 |
-| Coloring ✏️ | Colour a page from his own Sonic book | |
 
 - **Menu strip:** the 0–10 row on his menu colours bond partners alike (3 and 7, 4 and 6 ...). Tapping one says the bond.
 - **Wrong answers:** a wrong answer gives a hint, never a dead end. In the race and Pen Math, a second miss shows the answer and moves on.
