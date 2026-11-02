@@ -17,7 +17,7 @@ const KIDS = {
   },
   youssef: {
     id: 'youssef', name: 'Youssef', hero: 'sonic', heroName: 'Sonic', theme: 'youssef', title: 'Math', sub: '1 – 100', strip: 'bonds',
-    games: ['bond', 'pairs', 'balance', 'race', 'penmath', 'train', 'tens'],
+    games: ['split', 'bond', 'pairs', 'balance', 'race', 'penmath', 'train', 'tens'],
   },
 };
 const STRIP_COLORS = ['#e63946', '#ff8c42', '#ffcc33', '#2ecc71', '#00c2a8', '#3fa9f5', '#9b5de5', '#ff5fa2', '#e63946', '#ff8c42'];

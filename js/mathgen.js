@@ -1,20 +1,42 @@
 // The questions for Youssef's games. Pure functions (no page access), so tools/list_lines.mjs can run
 // them many times in Node and list every sentence a game can say for the voice recordings.
-import { randInt, pick, shuffle } from './util.js';
+import { randInt, pick, shuffle, clamp } from './util.js';
 
-// Number Bond: hints first, then a missing whole, then bonds of 10 and bonds with 0.
-export const BOND_LEVELS = [
-  { whole: [5, 6], miss: 'part', beads: true },
-  { whole: [6, 8], miss: 'part', beads: true },
-  { whole: [7, 9], miss: 'whole', beads: false },
-  { whole: [10, 10], miss: 'part', beads: false },
-  { whole: [8, 10], miss: 'part', beads: false, zero: true },
+// Number Bond, gentle and adaptive (the game moves him up and down these steps and remembers where he is).
+// Real objects → pictures → numbers: small wholes first, the whole (count all) before a missing part,
+// beads he can tap to count, and 3 answer buttons before the number pad.
+export const BOND_STEPS = [
+  { whole: [3, 3], miss: 'whole', choices: true, beads: true },
+  { whole: [3, 3], miss: 'part', choices: true, beads: true },
+  { whole: [4, 4], miss: 'whole', choices: true, beads: true },
+  { whole: [4, 4], miss: 'part', choices: true, beads: true },
+  { whole: [5, 5], miss: 'whole', choices: true, beads: true },
+  { whole: [5, 5], miss: 'part', choices: true, beads: true },
+  { whole: [6, 6], miss: 'part', choices: true, beads: true },
+  { whole: [7, 7], miss: 'part', choices: false, beads: true },
+  { whole: [8, 8], miss: 'part', choices: false, beads: false },
+  { whole: [9, 9], miss: 'part', choices: false, beads: false },
+  { whole: [10, 10], miss: 'part', choices: false, beads: false },
+  { whole: [5, 10], miss: 'mix', choices: false, beads: false, zero: true },
 ];
-export function bondRound(i) {
-  const lv = BOND_LEVELS[i];
-  const N = randInt(...lv.whole);
-  const a = lv.zero && Math.random() < 0.4 ? pick([0, N]) : randInt(1, N - 1);
-  return { lv, N, a, b: N - a, miss: lv.miss === 'whole' ? 'w' : pick(['a', 'b']) };
+export function bondRound(level) {
+  const st = BOND_STEPS[clamp(level, 0, BOND_STEPS.length - 1)];
+  const N = randInt(...st.whole);
+  const a = st.zero && Math.random() < 0.3 ? pick([0, N]) : randInt(1, N - 1);
+  const miss = st.miss === 'whole' ? 'w' : st.miss === 'mix' ? pick(['w', 'a', 'b']) : pick(['a', 'b']);
+  return { st, N, a, b: N - a, miss };
+}
+// 3 different answer buttons close to the answer, all within lo..hi.
+export function bondChoices(answer, lo, hi) {
+  const near = shuffle([-2, -1, 1, 2].map((d) => answer + d).filter((v) => v >= lo && v <= hi));
+  const far = shuffle([...Array(hi - lo + 1).keys()].map((k) => lo + k).filter((v) => v !== answer && !near.includes(v)));
+  return shuffle([answer, ...[...near, ...far].slice(0, 2)]);
+}
+
+// Split It: the wholes to split, from his Number Bond level (a little bigger every 2 rounds).
+export function splitWhole(level, i) {
+  const base = Math.min(BOND_STEPS[clamp(level, 0, BOND_STEPS.length - 1)].whole[0], 8);
+  return Math.min(10, base + Math.floor(i / 2));
 }
 
 // Make Pairs: 4 pairs of cards for each target.

@@ -33,7 +33,8 @@ A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "who
 
 | Game | What he does | Gets harder like this |
 |---|---|---|
-| Number Bond | Fill in the missing part or the whole | bead hints → missing whole → bonds of 10 → bonds with 0 |
+| Split It | Tap objects to move them between two plates; the number bond on top changes live. Keep 3 different ways to make the number. Nothing can be wrong | follows his Number Bond level, a bit bigger every 2 rounds |
+| Number Bond | Fill in the missing part or the whole. Tap the beads (a ten frame) to count them | **adapts to him** (below) |
 | Make Pairs | Tap two cards that make the target | make 7, 10, 8, 10, then 20 |
 | Balance | Type the number that makes the scale level (it tilts live while he types) | `a+?=c`, `?+b=c`, `10=a+?`, `a−b=?`, `a+b=c+?` |
 | Math Race | 10 quick sums; each answer makes Sonic dash toward the flag | + and − within 10 → teens → make 10 → doubles |
@@ -41,6 +42,12 @@ A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "who
 | Number Train | The missing number in a train of numbers | by 1s → across a ten → by 10s → by 2s/5s → to 100 or backwards |
 | Tens & Ones | Read rods and cubes, then build numbers with +10 / +1 | 11–19 → up to 49 → whole tens → build up to 99 |
 
+- **Number Bond levels:**
+  - It starts at bonds of 3, then 4, 5 … 10, then mixed with 0.
+  - At each size it asks for the whole (count all) before a missing part.
+  - 3 big answer buttons up to bonds of 6, then the number pad. Beads show up to bonds of 7; after that they're behind the bulb.
+  - 2 first-try answers in a row (3 from bonds of 6) move him up a step, and 2 misses on one question move him back.
+  - His step is saved on the tablet (`levels.bond` in localStorage).
 - **Menu strip:** the 0–10 row on his menu colours bond partners alike (3 and 7, 4 and 6 ...). Tapping one says the bond.
 - **Wrong answers:** a wrong answer gives a hint, never a dead end. In the race and Pen Math, a second miss shows the answer and moves on.
 - **Handwriting:** Pen Math reads digits with the $P point-cloud recognizer (`js/recognizer.js`), which ignores stroke order and direction. Test: about 95% of wobbly digits are read right.

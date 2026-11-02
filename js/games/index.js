@@ -8,6 +8,7 @@ import pop from './pop.js';
 import dots from './dots.js';
 import roads from './roads.js';
 import color from './color.js';
+import split from './split.js';
 import bond from './bond.js';
 import pairs from './pairs.js';
 import balance from './balance.js';
@@ -17,4 +18,4 @@ import train from './train.js';
 import tens from './tens.js';
 
 export const GAMES = Object.fromEntries(
-  [count, howmany, trace, basket, pop, dots, roads, color, bond, pairs, balance, race, penmath, train, tens].map((g) => [g.id, g]));
+  [count, howmany, trace, basket, pop, dots, roads, color, split, bond, pairs, balance, race, penmath, train, tens].map((g) => [g.id, g]));

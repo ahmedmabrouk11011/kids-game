@@ -20,4 +20,11 @@ export const store = {
     k.stars += stars;
     save();
   },
+  // A game's difficulty level for this kid (Number Bond moves up and down with him).
+  level(kidId, gameId) { return this.kid(kidId).levels?.[gameId] ?? 0; },
+  setLevel(kidId, gameId, v) {
+    const k = this.kid(kidId);
+    (k.levels ??= {})[gameId] = v;
+    save();
+  },
 };

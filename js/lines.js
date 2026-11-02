@@ -83,6 +83,15 @@ export const L = {
     whole: (a, b) => `What do ${a} and ${b} make?`,
     wrongWhole: 'Not quite. Count all the beads!',
     wrongPart: 'Not quite. Count the empty beads!',
+    tapAll: 'Tap the beads to count them all!',
+    tapEmpty: 'Tap the empty beads to count them!',
+    levelUp: 'Level up! Bigger numbers now!',
+  },
+  split: {
+    intro: "Let's split them! Tap one to move it to the other plate. Then press the green button.",
+    prompt: (N) => `Find 3 ways to make ${N}!`,
+    again: 'You found that one already! Try another way.',
+    done: (N) => `You found 3 ways to make ${N}!`,
   },
   pairs: {
     intro: (T) => `Tap two cards that make ${T} together!`,
@@ -156,7 +165,8 @@ export function allLines() {
 
   // Bonds in either order (a bond and the 0-10 strip), and any two cards in Make Pairs (smaller first).
   for (let a = 0; a <= 10; a++) for (let b = 0; a + b <= 10; b++) add(L.makes(a, b, a + b));
-  for (let i = 0; i < G.BOND_LEVELS.length; i++) {
+  for (let N = 3; N <= 10; N++) add(L.split.prompt(N), L.split.done(N));
+  for (let i = 0; i < G.BOND_STEPS.length; i++) {
     sample(() => {
       const r = G.bondRound(i);
       add(r.miss === 'w' ? L.bond.whole(r.a, r.b) : L.bond.part(r.N, r.miss === 'a' ? r.b : r.a));
