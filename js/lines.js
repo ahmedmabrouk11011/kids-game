@@ -5,6 +5,7 @@
 import { ITEMS, HEROES, itemName } from './items.js';
 import * as G from './mathgen.js';
 import { arabicLines } from './arabic.js';
+import { FOODS, SHAPES as SHADOWS, COLORS, shadowSaid, colorSaid } from './puzzles.js';
 
 // Clip lookup key: "That's 7." and "that's 7" share one recording. Arabic letters and harakat count too (بَ ≠ بِ).
 export const voiceKey = (text) => text.toLowerCase().replace(/[^a-z0-9\u0621-\u0652]+/g, ' ').trim();
@@ -72,6 +73,29 @@ export const L = {
     prompt: 'Follow the road with your pencil!',
     off: 'Oops! Stay on the road!',
     made: 'You made it!',
+  },
+  match: {
+    feed: 'Who eats what? Draw a line from each animal to its food!',
+    feedShort: 'Who eats what? Draw a line!',
+    count: 'Count them! Then draw a line to the right number.',
+    countShort: 'Draw a line to the right number!',
+    shadow: 'Find the shadow! Draw a line from each picture to its shadow.',
+    shadowShort: 'Find the shadow!',
+    color: 'What colour is it? Draw a line to the right colour!',
+    colorShort: 'Draw a line to the right colour!',
+    name: (n) => `${n}!`,
+    notThat: 'Hmm, not that one. Try again!',
+    all: 'You matched them all!',
+  },
+  maze: {
+    intro: (hero) => `Help ${hero} get the gem! Draw a path with your pencil.`,
+    prompt: 'Draw a path to the gem!',
+    wall: 'Oops, a wall! Find another way.',
+    start: (who) => `Start at the ${who}!`,
+    startHero: (hero) => `Start at ${hero}!`,
+    snack: (animal, food) => `The ${animal} is hungry! Draw a path to the ${food}, and get the stars on the way!`,
+    snackShort: (food) => `Draw a path to the ${food}!`,
+    yum: 'Yum yum!',
   },
   color: {
     pick: 'Pick a picture to colour!',
@@ -163,6 +187,14 @@ export function allLines() {
       p.intro(n), p.now(n), p.prompt(n), p.thats(n), p.find(n));
   }
   add(SHAPES.map(L.dots.made), HERO_NAMES.map(L.roads.intro));
+  for (const f of FOODS) {
+    const animal = f.name.toLowerCase();
+    const food = f.food.name.toLowerCase();
+    add(f.said, L.match.name(f.name), L.match.name(f.food.name), L.maze.snack(animal, food), L.maze.snackShort(food), L.maze.start(animal));
+  }
+  for (const s of SHADOWS) add(L.match.name(s.name), shadowSaid(s));
+  for (const c of COLORS) add(L.match.name(c.color), L.match.name(c.thing[0].toUpperCase() + c.thing.slice(1)), colorSaid(c));
+  add(HERO_NAMES.map(L.maze.intro), HERO_NAMES.map(L.maze.startHero));
 
   // Bonds in either order (a bond and the 0-10 strip), and any two cards in Make Pairs (smaller first).
   for (let a = 0; a <= 10; a++) for (let b = 0; a + b <= 10; b++) add(L.makes(a, b, a + b));

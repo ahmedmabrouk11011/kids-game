@@ -1133,3 +1133,54 @@ svg.ar.on-colour .m { fill: #fff; }
 .place-btn:active { transform: translateY(4px); }
 .place-btn.right { background: var(--green); border-color: #fff; animation: jump .6s cubic-bezier(.3, 1.6, .5, 1); }
 .place-btn.wrong { opacity: .35; pointer-events: none; }
+
+/* ---------- matching (Omar) ---------- */
+.ico.silhouette { filter: brightness(0); }
+.match-board { position: absolute; inset: 0 16px 12px; margin: 0 auto; max-width: 1040px; display: flex; align-items: stretch; --ch: 120px; --cwl: 140px; --cwr: 140px; }
+.match-board > svg, .match-board > canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.match-board > svg { pointer-events: none; overflow: visible; }
+.match-board > canvas { touch-action: none; z-index: 2; }
+.mgap { flex: 1; }
+.mcol.left { --cw: var(--cwl); }
+.mcol.right { --cw: var(--cwr); }
+.mcol { display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; flex: 0 0 auto; width: calc(var(--cw) + 20px); }
+.mcard {
+  position: relative; width: var(--cw); height: var(--ch); border-radius: 26px;
+  background: #fff; display: grid; place-items: center;
+  box-shadow: 0 0 0 5px var(--mc, rgba(255, 255, 255, .5)), 0 8px 0 rgba(0, 0, 0, .25);
+  animation: pop-in .45s cubic-bezier(.3, 1.6, .5, 1) both;
+  transition: box-shadow .2s;
+}
+.mcard .mpic { font-size: calc(var(--ch) * .72); }
+.mcard .mnum { color: #1d1d2b; font-size: calc(var(--ch) * .78); font-weight: 700; line-height: 1; }
+.mcard .mswatch {
+  width: calc(var(--ch) * .7); height: calc(var(--ch) * .7); background: var(--sw);
+  border-radius: 48% 52% 44% 56% / 55% 45% 55% 45%; box-shadow: inset -6px -8px 0 rgba(0, 0, 0, .14);
+}
+.mcard .mgroup {
+  display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 2px 4px; place-items: center;
+  font-size: min(calc(var(--ch) * .78 / var(--rows)), calc(var(--cw) * .82 / var(--cols)));
+}
+.mgroup .ico.counted { filter: drop-shadow(0 0 6px #ffcc33) drop-shadow(0 0 3px #ffcc33); transform: scale(1.12); }
+.mdot { position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: #1d1d2b; box-shadow: 0 0 0 4px #fff; }
+.mcol.left .mdot { right: -11px; }
+.mcol.right .mdot { left: -11px; }
+.mcard.sel { box-shadow: 0 0 0 7px var(--gold), 0 0 30px var(--gold), 0 8px 0 rgba(0, 0, 0, .25); }
+.mcard.sel .mdot { background: var(--gold); }
+.mcard.done { --mc: var(--green); }
+.mcard.done .mdot { background: var(--mc); }
+.mcard.mjump { animation: jump .5s cubic-bezier(.3, 1.6, .5, 1); }
+.mcard.shake { animation: shake .5s; }
+
+/* ---------- mazes (Omar) ---------- */
+.maze-board { position: absolute; inset: 0 12px 12px; }
+.maze-board svg, .maze-board canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.maze-board canvas { touch-action: none; }
+.maze-floor { fill: #f3eeff; stroke: #fff; stroke-width: 1; }
+.maze-walls { stroke: #5b3fd1; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.maze-trail { stroke: #ffc21a; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.maze-goal-glow { fill: #ffe58a; animation: breathe 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.maze-hero { transition: transform .14s ease-out; }
+.maze-hero.cheer .maze-hero-in { animation: maze-hop .6s 3; }
+.maze-hero-in { transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes maze-hop { 40% { transform: translateY(-3px) scale(1.15); } }

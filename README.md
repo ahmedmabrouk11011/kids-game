@@ -27,6 +27,23 @@ Live at https://ahmedmabrouk11011.github.io/kids-game/. It is one static page (H
 | Road Trip ✏️ | Drag Shadow along a road to the gem, collecting 5 stars (counted out loud). Roads: line, wave, zigzag, arches, S | pencil control, the first strokes of writing |
 | Coloring ✏️ | Colour a page from his own Shadow book: tap fills a space, drawing stays inside the lines | pencil control, fun |
 
+## Omar: Match & Maze
+
+The **Numbers / Match & Maze** tabs on Omar's menu switch between his two sets of games. Each game has 5 rounds.
+
+| Game | What he does | Gets harder like this |
+|---|---|---|
+| Who Eats What? ✏️ | Draw a line from each animal to its food (rabbit → carrot, monkey → banana …). The voice says "Rabbits eat carrots!" | 3 pairs, then 4 (from 14 animals) |
+| Count & Match ✏️ | Draw a line from a group of things to its number. Tap a group to count it together | 3 pairs up to 4, then 4 pairs up to 8 |
+| Find the Shadow ✏️ | Draw a line from each picture to its black shadow | 3 pairs, then 4 |
+| Colors ✏️ | Draw a line from a thing to its colour (banana → yellow) | 3 pairs, then 4 |
+| Maze ✏️ | Draw a path for Shadow to the gem. Walls stop him; going back rubs the path out | a new maze each round: 3×2 up to 6×4 |
+| Snack Maze ✏️ | Lead a hungry animal to its food, picking up 3 stars (counted) on the way | 4×3 up to 6×4 |
+
+- **Matching:** a line can start on either side. Tapping one card and then its partner also works (good for fingers), and a tap says the card's name. A wrong match gives a gentle "try again"; in Count & Match it counts the group with him.
+- **Mazes** are made fresh every round in `js/games/maze.js` (a perfect maze: exactly one way through). In portrait they turn tall.
+- The pictures and sentences are in `js/puzzles.js`.
+
 ## Youssef: Math 1–100 (number bonds 0–10 first)
 
 A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "whole" circle joined to two "part" circles. Youssef types most answers on a big number pad, or writes them with the pencil. Every game gets harder round by round.

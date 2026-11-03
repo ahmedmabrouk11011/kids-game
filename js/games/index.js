@@ -21,6 +21,9 @@ import arlisten from './arlisten.js';
 import arpop from './arpop.js';
 import arbuild from './arbuild.js';
 import arwhere from './arwhere.js';
+import { feed, countmatch, shadows, colors } from './match.js';
+import { maze, snackmaze } from './maze.js';
 
 export const GAMES = Object.fromEntries(
-  [count, howmany, trace, basket, pop, dots, roads, color, split, bond, pairs, balance, race, penmath, train, tens, armoves, arlisten, arpop, arbuild, arwhere].map((g) => [g.id, g]));
+  [count, howmany, trace, basket, pop, dots, roads, color, split, bond, pairs, balance, race, penmath, train, tens, armoves, arlisten, arpop, arbuild, arwhere,
+    feed, countmatch, shadows, colors, maze, snackmaze].map((g) => [g.id, g]));

@@ -15,7 +15,14 @@ const ROUNDS = 5;
 const KIDS = {
   omar: {
     id: 'omar', name: 'Omar', hero: 'shadow', heroName: 'Shadow', theme: 'omar', title: 'Numbers', sub: '1 – 10', strip: 'count',
+    card: 'Numbers · Puzzles', subjects: ['omar', 'puzzles'], tab: 'Numbers',
     games: ['count', 'howmany', 'trace', 'basket', 'pop', 'dots', 'roads', 'color'],
+  },
+  // Omar's matching games and mazes, on the second tab of his menu.
+  puzzles: {
+    id: 'puzzles', name: 'Omar', hero: 'shadow', heroName: 'Shadow', theme: 'omar', title: 'Match', sub: '& Maze', strip: 'count',
+    tab: 'Match & Maze', hidden: true, subjects: ['omar', 'puzzles'],
+    games: ['feed', 'countmatch', 'shadows', 'colors', 'maze', 'snackmaze'],
   },
   youssef: {
     id: 'youssef', name: 'Youssef', hero: 'sonic', heroName: 'Sonic', theme: 'youssef', title: 'Math', sub: '1 – 100', strip: 'bonds',
@@ -107,7 +114,7 @@ function menu(kidId) {
       class: 'tile', style: `--c:${g.color};animation-delay:${i * 60}ms`,
       onclick: () => { sfx.ding(); location.hash = `#/${kidId}/${gid}`; },
     },
-    h('div', { class: 'emo' }, icon(g.icon)),
+    h('div', { class: 'emo' }, icon(g.icon, g.iconCls)),
     h('div', { class: 'label' }, g.title),
     h('div', { class: 'stars' }, [1, 2, 3].map((s) => icon('star', s <= best ? '' : 'dim'))));
   });
