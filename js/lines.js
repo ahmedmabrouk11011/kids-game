@@ -4,9 +4,10 @@
 // After changing a line: .venv-tts/bin/python learn/tools/make_voice.py (from the project root).
 import { ITEMS, HEROES, itemName } from './items.js';
 import * as G from './mathgen.js';
+import { arabicLines } from './arabic.js';
 
-// Clip lookup key: "That's 7." and "that's 7" share one recording.
-export const voiceKey = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// Clip lookup key: "That's 7." and "that's 7" share one recording. Arabic letters and harakat count too (بَ ≠ بِ).
+export const voiceKey = (text) => text.toLowerCase().replace(/[^a-z0-9\u0621-\u0652]+/g, ' ').trim();
 
 export const NAMES = ['Omar', 'Youssef'];
 export const HERO_NAMES = ['Shadow', 'Sonic'];
@@ -190,5 +191,6 @@ export function allLines() {
       add(L.tens.make(n), L.tens.praise(Math.floor(n / 10), n % 10, n));
     });
   }
+  add(arabicLines());
   return [...out];
 }

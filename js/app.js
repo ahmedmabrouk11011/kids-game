@@ -5,6 +5,8 @@ import { showReward, closeReward } from './reward.js';
 import { store } from './store.js';
 import { L } from './lines.js';
 import { GAMES } from './games/index.js';
+import { LA, KINDS, syl, sylSaid, MOVE_LINE } from './arabic.js';
+import { arText } from './arglyph.js';
 
 const ROUNDS = 5;
 
@@ -17,9 +19,18 @@ const KIDS = {
   },
   youssef: {
     id: 'youssef', name: 'Youssef', hero: 'sonic', heroName: 'Sonic', theme: 'youssef', title: 'Math', sub: '1 – 100', strip: 'bonds',
+    card: 'Math · عربي', subjects: ['youssef', 'arabic'],
     games: ['split', 'bond', 'pairs', 'balance', 'race', 'penmath', 'train', 'tens'],
   },
+  // Youssef's Arabic (harakat and letter places). Reached from the subject tabs on his menu; spoken in Arabic.
+  arabic: {
+    id: 'arabic', name: 'Youssef', hero: 'sonic', heroName: 'Sonic', theme: 'youssef', title: 'عربي', sub: 'الحركات', strip: 'harakat',
+    tab: 'عربي', hidden: true, lang: 'ar', subjects: ['youssef', 'arabic'],
+    games: ['armoves', 'arlisten', 'arpop', 'arbuild', 'arwhere'],
+  },
 };
+KIDS.youssef.tab = 'Math';
+const hello = (kid) => (kid.lang === 'ar' ? LA.hello : L.hello(kid.name));
 const STRIP_COLORS = ['#e63946', '#ff8c42', '#ffcc33', '#2ecc71', '#00c2a8', '#3fa9f5', '#9b5de5', '#ff5fa2', '#e63946', '#ff8c42'];
 
 const app = document.getElementById('app');
@@ -67,7 +78,7 @@ function mascot(kid, onTap) {
 
 // ---------- screens ----------
 function kidPicker() {
-  const cards = Object.entries(KIDS).map(([id, kid], i) =>
+  const cards = Object.entries(KIDS).filter(([, kid]) => !kid.hidden).map(([id, kid], i) =>
     h('button', {
       class: `kid-card ${kid.theme}`,
       style: `animation-delay:${i * 120}ms`,
@@ -79,7 +90,7 @@ function kidPicker() {
     },
     hero(kid.hero, 'face'),
     h('div', { class: 'name' }, kid.name),
-    h('div', { class: 'sub' }, `${kid.title} ${kid.sub}`)));
+    h('div', { class: 'sub' }, kid.card || `${kid.title} ${kid.sub}`)));
   app.replaceChildren(
     h('div', { class: 'bar' }, h('div', { class: 'grow' }), fullscreenBtn(), muteBtn()),
     h('h1', { class: 'page-title' }, 'Who is playing?'),
@@ -100,8 +111,13 @@ function menu(kidId) {
     h('div', { class: 'label' }, g.title),
     h('div', { class: 'stars' }, [1, 2, 3].map((s) => icon('star', s <= best ? '' : 'dim'))));
   });
-  const strip = kid.strip === 'bonds' ? bondStrip() : countStrip();
-  const m = mascot(kid, () => say(L.hello(kid.name)));
+  const strip = kid.strip === 'bonds' ? bondStrip() : kid.strip === 'harakat' ? harakatStrip() : countStrip();
+  const m = mascot(kid, () => say(hello(kid)));
+  // Math / عربي tabs for a kid with more than one subject.
+  const tabs = kid.subjects && h('div', { class: 'subjects' }, kid.subjects.map((sid) => h('button', {
+    class: 'subject' + (sid === kidId ? ' on' : ''), lang: KIDS[sid].lang || 'en',
+    onclick: () => { if (sid !== kidId) { sfx.ding(); greet = sid; location.hash = `#/${sid}`; } },
+  }, KIDS[sid].tab)));
   app.replaceChildren(
     h('div', { class: 'bar' },
       h('button', { class: 'round-btn', 'aria-label': 'Back', onclick: () => { location.hash = '#/'; } }, icon('back')),
@@ -109,10 +125,13 @@ function menu(kidId) {
       h('div', { class: 'star-count' }, icon('star'), String(prog.stars)),
       fullscreenBtn(), muteBtn()),
     h('div', { class: 'title-row' }, m.el,
-      h('h1', { class: 'page-title' }, `${kid.name}'s `, h('span', { class: 'hl' }, kid.title), ` ${kid.sub}`)),
-    h('div', { class: 'menu' + (kid.games.length > 6 ? ' wide' : '') }, tiles),
+      kid.lang === 'ar'
+        ? h('h1', { class: 'page-title', lang: 'ar' }, 'عربي ', h('span', { class: 'hl' }, 'يوسف'))
+        : h('h1', { class: 'page-title' }, `${kid.name}'s `, h('span', { class: 'hl' }, kid.title), ` ${kid.sub}`)),
+    tabs,
+    h('div', { class: 'menu' + (kid.games.length > 6 ? ' wide' : '') + (kid.lang === 'ar' ? ' ar-menu' : ''), lang: kid.lang || 'en' }, tiles),
     h('div', { class: 'numstrip' }, strip));
-  if (greet === kidId) say(L.hello(kid.name));
+  if (greet === kidId) say(hello(kid));
   greet = null;
   return m.off;
 }
@@ -127,6 +146,20 @@ function countStrip() {
       say(L.num(n));
       const r = b.getBoundingClientRect();
       burst(r.left + r.width / 2, r.top, n * 6);
+    });
+    return b;
+  });
+}
+
+// The four harakat on ب, in their book colours. Tap one: Sonic's move and the sound (بَ).
+function harakatStrip() {
+  return KINDS.map((k) => {
+    const b = h('button', { class: 'har', style: `--c:var(--${k})` }, arText(syl('ب', k)));
+    b.addEventListener('click', () => {
+      replay(b, 'jump');
+      say(sylSaid('ب', k), MOVE_LINE[k]);
+      const r = b.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top, 30);
     });
     return b;
   });
@@ -168,7 +201,8 @@ function runGame(kidId, gameId) {
 
   // Deck of numbers for the rounds: different numbers from 1-10.
   const deck = [...Array(10)].map((_, i) => i + 1).sort(() => Math.random() - 0.5).slice(0, rounds);
-  preload([...Array(21)].map((_, n) => L.num(n)), L.greats(kid.name), L.yes, L.tryAgain);
+  if (kid.lang === 'ar') preload(LA.greats, LA.this, LA.want);
+  else preload([...Array(21)].map((_, n) => L.num(n)), L.greats(kid.name), L.yes, L.tryAgain);
 
   const api = {
     stage, kid, deck, rounds,
@@ -176,10 +210,10 @@ function runGame(kidId, gameId) {
     say: (...parts) => (alive ? say(...parts) : Promise.resolve(false)),
     setPrompt(...parts) { prompt = parts.flat(); },
     mistake() { mistakes++; replay(m.el, 'shake-it'); },
-    great: () => pick(L.greats(kid.name)),
+    great: () => pick(kid.lang === 'ar' ? LA.greats : L.greats(kid.name)),
     // Called by a game when the round is solved: reward screen, then the next round (or the trophy).
     // praise: one line or a list of lines. quick: a short cheer instead of the reward screen; quiet: no cheer.
-    async win({ num, emoji, text, praise, quick, quiet }) {
+    async win({ num, emoji, text, node, praise, quick, quiet }) {
       if (!alive || busy) return;
       busy = true;
       dots[round].classList.add('on');
@@ -194,7 +228,7 @@ function runGame(kidId, gameId) {
         await Promise.all([api.say(line), sleep(quiet ? 1800 : 1100)]);
       } else {
         api.say(line);
-        await showReward({ num, emoji, text, hero: kid.hero });
+        await showReward({ num, emoji, text, node, hero: kid.hero });
       }
       if (!alive) return;
       busy = false;
@@ -220,7 +254,7 @@ function runGame(kidId, gameId) {
       h('div', { class: 'row' }, again, home)));
     rain(220);
     sfx.tada();
-    api.say(L.finish(kid.name, stars));
+    api.say(kid.lang === 'ar' ? LA.finish : L.finish(kid.name, stars));
   }
 
   return () => { alive = false; m.off(); inst.destroy?.(); };
@@ -235,7 +269,7 @@ function route() {
   stopSpeech();
   const [kidId, gameId] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const kid = KIDS[kidId];
-  document.body.dataset.kid = kid ? kidId : '';
+  document.body.dataset.kid = kid ? kid.theme : '';
   if (!kid) return kidPicker();
   if (gameId && GAMES[gameId] && kid.games.includes(gameId)) cleanup = runGame(kidId, gameId);
   else cleanup = menu(kidId);

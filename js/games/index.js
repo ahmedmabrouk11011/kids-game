@@ -16,6 +16,11 @@ import race from './race.js';
 import penmath from './penmath.js';
 import train from './train.js';
 import tens from './tens.js';
+import armoves from './armoves.js';
+import arlisten from './arlisten.js';
+import arpop from './arpop.js';
+import arbuild from './arbuild.js';
+import arwhere from './arwhere.js';
 
 export const GAMES = Object.fromEntries(
-  [count, howmany, trace, basket, pop, dots, roads, color, split, bond, pairs, balance, race, penmath, train, tens].map((g) => [g.id, g]));
+  [count, howmany, trace, basket, pop, dots, roads, color, split, bond, pairs, balance, race, penmath, train, tens, armoves, arlisten, arpop, arbuild, arwhere].map((g) => [g.id, g]));

@@ -52,6 +52,37 @@ A number bond splits a whole into two parts: 7 is 3 and 4. It is shown as a "who
 - **Wrong answers:** a wrong answer gives a hint, never a dead end. In the race and Pen Math, a second miss shows the answer and moves on.
 - **Handwriting:** Pen Math reads digits with the $P point-cloud recognizer (`js/recognizer.js`), which ignores stroke order and direction. Test: about 95% of wobbly digits are read right.
 
+## Youssef: Arabic, harakat and letter places (عربي)
+
+The **Math / عربي** tabs on Youssef's menu switch subjects. Everything here is spoken in Arabic. It uses the same words, colours and "Sonic moves" as his printed book (`ColoringBooks/output/Youssef-Arabic-Harakat-Book.pdf`):
+
+| Haraka | Colour | Sonic move |
+|---|---|---|
+| fatha | blue | jumps up |
+| kasra | green | slides down |
+| damma | orange | curls into a ball |
+| sukun | gold | stops at a ring |
+
+| Game | What he does | Gets harder like this |
+|---|---|---|
+| حركات سونيك (Sonic Moves) | Tap the haraka (the buttons show only the haraka) that makes the letter say the sound he hears. Sonic does the move | random letters |
+| اسمع واختر (Listen and Pick) | Hear a sound, tap its card | **adapts to him**: fatha or kasra, then + damma, then all four, then two letters mixed |
+| فقاعات الحركات (Haraka Bubbles) | Pop 5 bubbles that have this round's haraka | one round per haraka |
+| ابنِ الكلمة (Build the Word) | Picture + spoken word. Tap the letter cards from the right to fill the train. Each card reads its sound, then the cars join into the word | 10 words from 52: fatha words, then kasra and damma, then a sukun in the middle; an extra card from round 6 |
+| أين الحرف؟ (Where is the Letter?) | Is the letter at the start, middle or end of the word? The buttons show its shape in each place | 10 questions from 122 (made from all the words), start, middle and end mixed |
+
+- **Menu strip:** بَ بِ بُ بْ. Tapping one says the sound and the Sonic move.
+- **Sukun:** a letter with sukun is read with a helping hamza, as teachers do: بْ is said "أَبْ".
+- **Words:** the words are in `js/arabic.js`. They use only fatha, kasra and damma, with sukun on the last letter.
+- **Arabic text:** it is drawn from pre-shaped glyphs (`js/ar-glyphs.js`, drawn by `js/arglyph.js`), because browsers paint a haraka in its letter's colour. After changing words or letters in `js/arabic.js`, run this from the project root:
+
+  ```bash
+  .venv/bin/python learn/tools/make_arabic.py
+  ```
+
+  It needs `uharfbuzz` and `fonttools` in the project's `.venv`. The font is Noto Naskh Arabic (OFL), in `tools/fonts/`.
+- **Arabic voice:** the Mac's built-in voice Majed records these lines (free; `make_voice.py` picks it for any Arabic line). The praise lines (`BOY_LINES` in `js/arabic.js`) are meant to be said by a real boy. Put his recordings in `ColoringBooks/incoming/praise/` as `1.m4a`, `2.m4a` … in that order, then run `make_voice.py`. It trims them and evens out the loudness. One recording of all of them, in order with pauses between, also works: `.venv-tts/bin/python learn/tools/split_praise.py <file>` cuts it into the numbered files. Until a line has a recording, the Mac voice says it, raised in pitch.
+
 ## Changing what the voice says
 
 All spoken lines live in `js/lines.js`. After adding or changing a line, record the new ones (from the project root):
@@ -60,7 +91,7 @@ All spoken lines live in `js/lines.js`. After adding or changing a line, record 
 .venv-tts/bin/python learn/tools/make_voice.py
 ```
 
-It only records new lines (about 0.2 s each on the Mac's CPU) and deletes recordings that are no longer used. `tools/list_lines.mjs` lists every line, sampling the question generators in `js/mathgen.js`.
+It only records new lines (about 0.2 s each on the Mac's CPU; Arabic lines use the Mac voice Majed, about 0.6 s each) and deletes recordings that are no longer used. `tools/list_lines.mjs` lists every line, sampling the question generators in `js/mathgen.js`.
 
 ## Run it on this Mac
 
